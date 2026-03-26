@@ -15,7 +15,7 @@ WORKDIR /app
 FROM base as development
 
 COPY pyproject.toml uv.lock* ./
-RUN uv pip install --system --no-cache -r pyproject.toml
+RUN uv sync --all-extras
 
 COPY . .
 
@@ -25,8 +25,8 @@ CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "800
 FROM base as production
 
 COPY pyproject.toml uv.lock* ./
-RUN uv pip install --system --no-cache -r pyproject.toml
+RUN uv sync --no-dev
 
 COPY . .
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002", "--workers", "4"]

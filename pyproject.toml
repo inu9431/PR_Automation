@@ -8,9 +8,11 @@ dependencies = [
     "uvicorn[standard]>=0.27.0",
     "pydantic>=2.5.3",
     "pydantic-settings>=2.1.0",
-    "python-dotenv>=1.0.0",
     "psycopg2-binary>=2.9",
     "sqlalchemy>=2.0",
+    "anthropic>=0.86.0",
+    "httpx>=0.28.1",
+    "pytest>=9.0.2",
 ]
 
 [project.optional-dependencies]
@@ -53,19 +55,12 @@ skip_gitignore = true
 known_first_party = ["app"]
 known_third_party = ["fastapi", "pydantic", "sqlalchemy"]
 
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_functions = ["test_*"]
+python_files = "test_*.py"
+python_functions = "test_*"
 asyncio_mode = "auto"
-addopts = [
-    "-v",
-    "--strict-markers",
-    "--cov=app",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-branch",
-]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",

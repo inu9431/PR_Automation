@@ -1,15 +1,10 @@
 from fastapi import FastAPI
+from app.api.webhook import router
+from app.database import Base, engine
 
-app = FastAPI(
-    title="FastAPI Docker Template",
-    description="FastAPI project with Docker and CI/CD",
-    version="0.1.0"
-)
+# Base.metadata.create_all(engine)
 
-@app.get("/")
-async def root():
-    return {"message": "Hello, FastAPI!"}
+app = FastAPI()
+app.include_router(router)
 
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+

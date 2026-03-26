@@ -37,9 +37,12 @@ jobs:
 
       - name: Create .env
         run: |
-          echo "DEBUG=True" > .env
-          echo "SECRET_KEY=test-key" >> .env
-          echo "DATABASE_URL=postgres://test_user:test_password@localhost:5432/test_db" >> .env
+          echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db" > .env
+          echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" >> .env
+          echo "GITHUB_TOKEN=${{ secrets.GH_TOKEN }}" >> .env
+          echo "DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}" >> .env
+          echo "DEBUG=True" >> .env
+
 
       - name: Run Black check
         run: uv run black --check .
