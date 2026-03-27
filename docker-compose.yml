@@ -17,17 +17,12 @@ services:
       timeout: 5s
       retries: 5
 
-#  redis:
-#    image: redis:7-alpine
-#    container_name: app_redis_dev
-#    ports:
-#      - "6379:6379"
-
   web:
     build:
       context: .
       target: development
     container_name: app_web_dev_1
+    command: uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 --reload-exclude ".venv"
     volumes:
       - .:/app
     ports:

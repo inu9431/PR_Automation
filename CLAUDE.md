@@ -24,16 +24,33 @@ Claude API 1차 분석 (요구사항 + ERD 기준)
 ## 디렉토리 구조
 
 ```
-pr-review-agent/
-├── main.py
-├── reviewer.py
-├── github_client.py
-├── discord_client.py
-├── cost_logger.py
-├── prompts/
-│   └── review_prompt.py
-├── .env
-└── requirements.txt
+PR_Automation/
+├── app/
+│   ├── api/
+│   │   └── webhook.py          # /webhook, /cost 라우터
+│   ├── models/
+│   │   └── cost_log.py         # SQLAlchemy ORM 모델
+│   ├── schemas/
+│   │   └── github.py           # Pydantic 응답 스키마
+│   ├── services/
+│   │   ├── reviewer.py         # Claude API 리뷰 로직
+│   │   ├── github_client.py    # PR diff fetch
+│   │   ├── discord_client.py   # Discord 전송
+│   │   └── cost_logger.py      # 비용 DB 저장/조회
+│   ├── prompts/
+│   │   └── review_prompt.py    # 리뷰 프롬프트 (요구사항/ERD)
+│   ├── config.py               # pydantic-settings 환경변수
+│   ├── database.py             # SQLAlchemy engine, session
+│   └── main.py                 # FastAPI app
+├── tests/
+│   ├── conftest.py             # 공통 fixtures
+│   ├── test_webhook.py
+│   ├── test_reviewer.py
+│   └── test_cost_logger.py
+├── docker-compose.yml
+├── docker-compose.prod.yml
+├── Dockerfile
+└── pyproject.toml
 ```
 
 ## 환경 변수 (.env)
@@ -42,18 +59,32 @@ pr-review-agent/
 ANTHROPIC_API_KEY=sk-ant-xxxxx
 GITHUB_TOKEN=ghp_xxxxx
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/xxxxx
+DATABASE_URL=postgresql://postgres:postgres@db:5432/dev_db
+DEBUG=False
+
+# DB (docker-compose용)
+DB_NAME=dev_db
+DB_USER=postgres
+DB_PASSWORD=postgres
+
+# Docker Hub
+DOCKER_USERNAME=your-username
 ```
 
 ## 설치
 
 ```bash
-pip install fastapi uvicorn anthropic httpx python-dotenv
+uv add anthropic httpx pydantic-settings sqlalchemy psycopg2-binary
 ```
 
 ## 실행
 
 ```bash
-uvicorn main:app --reload --port 8000
+# 도커
+docker compose up -d --build
+
+# 로컬
+uv run uvicorn app.main:app --reload --port 8000
 ```
 
 ## 비용 확인
@@ -74,10 +105,10 @@ GET http://localhost:8000/cost
 
 ## GitHub Webhook 설정
 
-1. 레포 → Settings → Webhooks → Add webhook
-2. Payload URL: `http://your-server:8000/webhook`
+1. 테스트용 레포 → Settings → Webhooks → Add webhook
+2. Payload URL: `https://xxxx.ngrok-free.dev/webhook`
 3. Content type: `application/json`
-4. Events: `Pull requests` 체크
+4. Events: `Pull requests`만 체크 (push 제외)
 
 로컬 테스트 시 ngrok 사용:
 
@@ -85,34 +116,30 @@ GET http://localhost:8000/cost
 ngrok http 8000
 ```
 
-## 로컬 테스트
-
-```python
-# test_review.py
-import asyncio
-from dotenv import load_dotenv
-load_dotenv()
-
-from reviewer import review_pr
-
-asyncio.run(review_pr(
-    repo="your-org/your-repo",
-    pr_number=1,
-    pr_title="테스트 PR",
-    pr_url="https://github.com/your-org/your-repo/pull/1",
-    author="test-user",
-))
-```
+## 테스트
 
 ```bash
-python test_review.py
+# 단위 테스트
+uv run pytest -v
+
+# E2E 테스트
+# 테스트용 레포에서 PR 오픈 → 디스코드에 리뷰 초안 수신 확인
 ```
 
-디스코드에 리뷰 초안 + 비용 오면 정상. `cost_log.jsonl` 파일 생성 확인.
+디스코드에 리뷰 초안 + 비용 오면 정상.
+
+## GitHub Secrets 설정 (CI/CD)
+
+레포 → Settings → Secrets and variables → Actions:
+- `ANTHROPIC_API_KEY`
+- `GH_TOKEN`
+- `DISCORD_WEBHOOK_URL`
+- `DOCKER_USERNAME` / `DOCKER_PASSWORD`
+- `EC2_HOST` / `EC2_KEY`
 
 ## 요구사항/ERD 업데이트 방법
 
-`prompts/review_prompt.py`의 `REQUIREMENTS`만 수정.
+`app/prompts/review_prompt.py`의 `REQUIREMENTS`만 수정.
 프로젝트 바뀔 때마다 이 부분만 교체해서 재사용.
 
 ```python
