@@ -9,5 +9,10 @@ class Settings(BaseSettings):
     database_url: str
     debug: bool = False
 
+    claude_model: str = "claude-sonnet-4-5"
+    claude_max_tokens: int = 1500
+    claude_input_price: float = 3.0
+    claude_output_price: float = 15.0
+
 settings = Settings()
 

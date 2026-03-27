@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.models.cost_log import CostLog
 
@@ -13,11 +14,15 @@ def log_cost(db: Session, pr_number: int, input_tokens: int, output_tokens: int,
     db.commit()
 
 def get_total_cost(db: Session) -> dict:
-    logs = db.query(CostLog).all()
-    total_usd = sum(log.cost_usd for log in logs)
+    result = db.query(
+        func.count(CostLog.id),
+        func.sum(CostLog.cost_usd),
+    ).one()
 
+    total_count = result[0] or 0
+    total_usd = result[1] or 0.0
     return {
-        "total_pr_count": len(logs),
+        "total_pr_count": total_count,
         "total_cost_usd": round(total_usd, 6),
         "total_cost_krw": round(total_usd * 1400, 2),
     }
