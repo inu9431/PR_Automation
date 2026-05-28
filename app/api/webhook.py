@@ -1,24 +1,29 @@
 import hashlib
 import hmac
 import logging
+
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
+
 from app.config import settings
-from app.schemas.github import WebhookPayload, CostSummaryResponse
-from app.services.reviewer import review_pr
+from app.database import SessionLocal, get_db
+from app.schemas.github import CostSummaryResponse, WebhookPayload
 from app.services.cost_logger import get_total_cost
-from app.database import get_db, SessionLocal
+from app.services.reviewer import review_pr
 
 logger = logging.getLogger(__name__)
 
 
 def verify_signature(body: bytes, signature_header: str) -> bool:
-    expected = "sha256=" + hmac.new(
-        key=settings.github_webhook_secret.encode(),
-        msg=body,
-        digestmod=hashlib.sha256,
-    ).hexdigest()
+    expected = (
+        "sha256="
+        + hmac.new(
+            key=settings.github_webhook_secret.encode(),
+            msg=body,
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+    )
     return hmac.compare_digest(expected, signature_header)
 
 
@@ -75,7 +80,7 @@ async def webhook(
 
     return {"status": "ok"}
 
+
 @router.get("/cost", response_model=CostSummaryResponse)
 async def cost_summary(db: Session = Depends(get_db)):
     return get_total_cost(db)
-

@@ -1,7 +1,10 @@
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from app.services.discord_client import send_discord_message
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
+import pytest
+
+from app.services.discord_client import send_discord_message
+
 
 @pytest.mark.asyncio
 async def test_send_discord_message_success():
@@ -12,6 +15,7 @@ async def test_send_discord_message_success():
 
         await send_discord_message("테스트메세지")
         mock_post.assert_called_once()
+
 
 @pytest.mark.asyncio
 async def test_send_discord_message_truncate():

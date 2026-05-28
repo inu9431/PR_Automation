@@ -1,16 +1,20 @@
 import hashlib
 import hmac
 import json
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 
 def make_signature(body: bytes, secret: str = "test-secret") -> str:
-    return "sha256=" + hmac.new(
-        key=secret.encode(),
-        msg=body,
-        digestmod=hashlib.sha256,
-    ).hexdigest()
+    return (
+        "sha256="
+        + hmac.new(
+            key=secret.encode(),
+            msg=body,
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+    )
 
 
 def signed_headers(body: bytes, secret: str = "test-secret") -> dict:
@@ -64,10 +68,13 @@ async def test_webhook_invalid_json(async_client):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("payload", [
-    {"action": "opened", "pull_request": {"number": 1}, "repository": {}},
-    {"action": "opened", "pull_request": {}, "repository": {"full_name": "test/repo"}},
-])
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"action": "opened", "pull_request": {"number": 1}, "repository": {}},
+        {"action": "opened", "pull_request": {}, "repository": {"full_name": "test/repo"}},
+    ],
+)
 async def test_webhook_missing_fields(async_client, payload):
     body = json.dumps(payload).encode()
     res = await async_client.post("/webhook", content=body, headers=signed_headers(body))

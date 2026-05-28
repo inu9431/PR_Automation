@@ -6,9 +6,11 @@ os.environ.setdefault("GITHUB_TOKEN", "test-token")
 os.environ.setdefault("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/test")
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 
-import pytest
 from unittest.mock import MagicMock
-from httpx import AsyncClient, ASGITransport
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
 from app.main import app
 
 TEST_WEBHOOK_SECRET = os.environ["GITHUB_WEBHOOK_SECRET"]
