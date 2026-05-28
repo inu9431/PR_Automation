@@ -1,6 +1,9 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
 from datetime import datetime
+
+from sqlalchemy import Column, DateTime, Float, Integer, String
+
 from app.database import Base
+
 
 class CostLog(Base):
     __tablename__ = "cost_log"

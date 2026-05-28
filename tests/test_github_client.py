@@ -1,7 +1,10 @@
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from app.services.github_client import get_pr_diff_text
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
+import pytest
+
+from app.services.github_client import get_pr_diff_text
+
 
 @pytest.mark.asyncio
 async def test_get_pr_diff_text_success():
@@ -20,6 +23,7 @@ async def test_get_pr_diff_text_success():
         assert "views.py" in result
         assert "image.png" in result
         assert "(binary or no diff" in result
+
 
 @pytest.mark.asyncio
 async def test_get_pr_diff_text_api_fail():

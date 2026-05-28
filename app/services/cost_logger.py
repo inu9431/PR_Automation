@@ -1,6 +1,8 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+
 from app.models.cost_log import CostLog
+
 
 def log_cost(db: Session, pr_number: int, input_tokens: int, output_tokens: int, cost: float):
     entry = CostLog(
@@ -12,6 +14,7 @@ def log_cost(db: Session, pr_number: int, input_tokens: int, output_tokens: int,
     )
     db.add(entry)
     db.commit()
+
 
 def get_total_cost(db: Session) -> dict:
     result = db.query(
