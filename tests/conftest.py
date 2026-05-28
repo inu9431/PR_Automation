@@ -1,11 +1,23 @@
+import os
+
+os.environ.setdefault("GITHUB_WEBHOOK_SECRET", "test-secret")
+os.environ.setdefault("ANTHROPIC_API_KEY", "test-key")
+os.environ.setdefault("GITHUB_TOKEN", "test-token")
+os.environ.setdefault("DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/test")
+os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock
 from httpx import AsyncClient, ASGITransport
 from app.main import app
+
+TEST_WEBHOOK_SECRET = os.environ["GITHUB_WEBHOOK_SECRET"]
+
 
 @pytest.fixture
 def db():
     return MagicMock()
+
 
 @pytest.fixture
 def webhook_payload():
@@ -19,6 +31,7 @@ def webhook_payload():
         },
         "repository": {"full_name": "test/repo"},
     }
+
 
 @pytest.fixture
 async def async_client():

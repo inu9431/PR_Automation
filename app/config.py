@@ -5,6 +5,7 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str
     github_token: str
+    github_webhook_secret: str
     discord_webhook_url: str
     database_url: str
     debug: bool = False
