@@ -43,7 +43,7 @@ async def test_review_pr_claude_fail(db):
 @pytest.mark.asyncio
 async def test_review_pr_db_fail_continues_discord(db):
     mock_response = MagicMock()
-    mock_response.content = [MagicMock(test="리뷰 내용")]
+    mock_response.content = [MagicMock(text="리뷰 내용")]
     mock_response.usage.input_tokens = 100
     mock_response.usage.output_tokens = 50
 
