@@ -4,7 +4,7 @@ from anthropic import AsyncAnthropic
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.prompts.review_prompt import build_prompt
+from app.prompts.review_prompt import build_system_prompt, build_user_message
 from app.services.cost_logger import log_cost
 from app.services.discord_client import send_discord_message
 from app.services.github_client import get_pr_diff_text
@@ -23,11 +23,11 @@ async def review_pr(
         logger.error(f"GitHub diff 조회 실패 PR #{pr_number}: {e}")
         return
     try:
-        prompt = build_prompt(diff_text)
         response = await client.messages.create(
             model=settings.claude_model,
             max_tokens=settings.claude_max_tokens,
-            messages=[{"role": "user", "content": prompt}],
+            system=build_system_prompt(),
+            messages=[{"role": "user", "content": build_user_message(diff_text)}],
         )
     except Exception as e:
         logger.error(f"Claude API 호출 실패 PR #{pr_number}: {e}")
