@@ -290,7 +290,7 @@ REVIEW_STANDARDS = """
 """
 
 
-def build_prompt(diff_text: str) -> str:
+def build_system_prompt() -> str:
     return f"""
 당신은 시니어 백엔드 개발자이자 부트캠프 TA입니다.
 아래 프로젝트 요구사항과 공통 리뷰 기준으로 PR을 검토하세요.
@@ -402,7 +402,8 @@ def build_prompt(diff_text: str) -> str:
 - 수정 필요 시 우선순위 정리
 
 ---
+""".strip()
 
-[PR 코드]
-{diff_text}
-"""
+
+def build_user_message(diff_text: str) -> str:
+    return f"[PR 코드]\n{diff_text}"

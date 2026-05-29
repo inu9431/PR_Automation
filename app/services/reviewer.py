@@ -4,7 +4,7 @@ from anthropic import AsyncAnthropic
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.prompts.review_prompt import build_prompt
+from app.prompts.review_prompt import build_system_prompt, build_user_message
 from app.services.cost_logger import log_cost
 from app.services.discord_client import send_discord_message
 from app.services.github_client import get_pr_diff_text
@@ -18,36 +18,36 @@ async def review_pr(
     repo: str, pr_number: int, pr_title: str, pr_url: str, author: str, db: Session
 ):
     try:
-        diff_text = await get_pr_diff_text(repo, pr_number)  # gitapi에서 diff 가져옴
+        diff_text = await get_pr_diff_text(repo, pr_number)
     except Exception as e:
         logger.error(f"GitHub diff 조회 실패 PR #{pr_number}: {e}")
         return
     try:
-        prompt = build_prompt(diff_text)  # diff를 요구사항/ERD 기준으로 판단해서 프롬프트 생
-        response = await client.messages.create(  # claudeAPI 호출해서 llm 리뷰 받음
+        response = await client.messages.create(
             model=settings.claude_model,
             max_tokens=settings.claude_max_tokens,
-            messages=[{"role": "user", "content": prompt}],
+            system=build_system_prompt(),
+            messages=[{"role": "user", "content": build_user_message(diff_text)}],
         )
     except Exception as e:
         logger.error(f"Claude API 호출 실패 PR #{pr_number}: {e}")
         return
 
-    review_text = response.content[0].text  # 리뷰에서 텍스트 꺼
-    input_tokens = response.usage.input_tokens  # 토큰수 입력
-    output_tokens = response.usage.output_tokens  # 토큰수 출력
-    cost = calculate_cost(input_tokens, output_tokens)  # 토큰수로 비용 계산
+    review_text = response.content[0].text
+    input_tokens = response.usage.input_tokens
+    output_tokens = response.usage.output_tokens
+    cost = calculate_cost(input_tokens, output_tokens)
 
     try:
-        log_cost(db, pr_number, input_tokens, output_tokens, cost)  # 디비저장
+        log_cost(db, pr_number, input_tokens, output_tokens, cost)
     except Exception as e:
         logger.error(f"비용 DB 저장 실패 PR #{pr_number}: {e}")
 
-    message = build_discord_message(  # 디스코드 메세지 포매팅
+    message = build_discord_message(
         pr_title, pr_url, author, pr_number, input_tokens, output_tokens, cost, review_text
     )
     try:
-        await send_discord_message(message)  # 디스코드로 전송
+        await send_discord_message(message)
     except Exception as e:
         logger.error(f"Discord 전송 실패 PR #{pr_number}: {e}")
 
